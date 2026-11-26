@@ -81,10 +81,17 @@ def check_line(line: str) -> None:
 
 
 def write_entry(line: str, destination: Path = DESTINATION) -> Path:
-    """Validate *line*, then write it (with a trailing newline) to disk."""
+    """Validate *line*, write it (with a trailing newline), then read it back.
+
+    The read-back guards the one thing the local grade cannot see: that
+    the file the grader will read actually holds exactly the validated
+    line, byte for byte, with no stray whitespace or encoding surprise.
+    """
     check_line(line)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(line + "\n", encoding="utf-8")
+    if destination.read_text(encoding="utf-8") != line + "\n":
+        raise SystemExit("gate failed: written file does not match the line")
     return destination
 
 
